@@ -9,7 +9,7 @@ const PSDI_SERVICE_UUID         = 'E625601E-9E55-4597-A598-76018A0D293D'; // Dev
 const PSDI_CHARACTERISTIC_UUID  = '26E2B12B-85F0-4F3F-9FDD-91D114270E6E';
 
 // 追加
-const READ_SERVICE_UUID         = '<YOUR_CHARACTERISTIC_UUID>';
+const READ_SERVICE_UUID         = '9910b122-8073-4572-bec9-4cf422155893';
 
 // UI settings
 let ledState = false; // true: LED on, false: LED off
@@ -211,6 +211,17 @@ function liffConnectToDevice(device) {
 }
 
 function liffGetUserService(service) {
+    // Read value
+    service.getCharacteristic(READ_CHARACTERISTIC_UUID).then(characteristic => {
+        return characteristic.readValue();
+    }).then(value => {
+        // Convert byte buffer to Int32 in little endian
+        const value = new DataView(value.buffer).getInt32(0, true);
+        document.getElementById("total-count").innerText = value;
+    }).catch(error => {
+        uiStatusError(makeErrorMsg(error), false);
+    });
+    
     // Button pressed state
     service.getCharacteristic(BTN_CHARACTERISTIC_UUID).then(characteristic => {
         liffGetButtonStateCharacteristic(characteristic);
@@ -222,7 +233,7 @@ function liffGetUserService(service) {
     service.getCharacteristic(LED_CHARACTERISTIC_UUID).then(characteristic => {
         window.ledCharacteristic = characteristic;
 
-        // Switch off by default
+    // Switch off by default
         liffToggleDeviceLedState(false);
     }).catch(error => {
         uiStatusError(makeErrorMsg(error), false);
